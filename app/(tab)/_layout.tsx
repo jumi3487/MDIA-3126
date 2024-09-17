@@ -12,16 +12,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="lesson-2"
+        name="Sandwich"
         options={{
-          title: 'Atomic Design',
+          title: '🥪',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="cog" color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="lesson-3"
+     <Tabs.Screen
+        name="Cheese"
         options={{
-          title: 'Routing an Styling',
+          title: '🧀',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="cog" color={color} />,
         }}
       />
