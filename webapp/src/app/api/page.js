@@ -1,85 +1,103 @@
-"use client"
-// API PAGE
+"use client";
 
 import { useState } from "react";
 
-export default function Page() {
+export default function EventsPage() {
+    const API_KEY = process.env.NEXT_PUBLIC_TICKETMASTER_API_KEY;
+    const API_URL = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=7KpfwE4ixtW5VfaJCEN4epq6GdFWUYwu&countryCode=US`;
 
-  // const DATA_URL = "https://mdn.github.io/learning-area/javascript/apis/fetching-data/can-store/products.json";
-  const DATA_URL = "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&count=5";
-  const [data, setData] = useState(null);
+    const [data, setData] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-  async function fetchData() {
-    //when we running this fnction, when it hits await, will wait until whatever need to be done first
-    const response = await fetch(DATA_URL);  //fetch is asynchronous. always return in object 
-    console.log(response);
-    const data = await response.json();
-    console.log(data);
-    setData(data);
-  }
-
-      // let productsList = [];
-      // // Loop through each items 
-      // data.forEach((product, index) => {
-      //   productsList.push(
-      //     <li key={index}>{product.name}</li>
-      //   );
-      // });
-
-      const DisplayMedia = () => {
-        if (data) {
-
-      let mediaList = [];
-
-      // Loop through each items 
-      data.forEach((medium, index) => {
-        let formattedMedia = medium.media_type === 'image' ? <img src={medium.url} /> : (
-          <video controls width="250">
-            <source src={medium.url} type="video/webm" />
-          </video>
-        )
-
-        mediaList.push(
-          <li key={index}>
-            <img src={medium.url} />
-            <h3>{medium.title}</h3>
-            {medium.explanation}
-          </li>
-        );
-      });
-
-
-      return (
-        <div className="border-4 border-black p-4 mb-4">
-          <ul>
-            {mediaList}
-          </ul>
-        </div>
-      )
-    } else {
-      return (
-        <div className="border-4 border-black p-4 mb-4">
-            🪐
-        </div>
-      )
-
+    // Function to fetch data from Ticketmaster API
+    async function fetchData() {
+        setIsLoading(true);
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            setData(data);
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setIsLoading(false);
+        }
     }
-  }
 
-  
-  return (
-    <div className="p-4 bg-yellow-300">
-      <header className="border-4 border-black p-4 mb-4">
-        <h1>welcome to my product page</h1>
-        <button 
-          className="bg-white px-6"
-          onClick={fetchData}
-        >
-            Fetch products!
-        </button>
-      </header>
-      <DisplayMedia />
-    </div>
-  );
+    // Function to display events, including promoters and images
+    const DisplayEvents = () => {
+        if (data && data._embedded && data._embedded.events) {
+            return (
+                <ul>
+                    {data._embedded.events.map((event, index) => (
+                        <li 
+                          key={index}
+                          style={{
+                                border: '1px solid #ddd',
+                                padding: '20px',
+                                marginBottom: '20px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center'
+                            }}>
+                            <h2 style={{ fontSize: '24px', fontWeight: '600', color: '#333'}}>{event.name}</h2>
+                            <p> 💙 Date: {event.dates.start.localDate}</p>
+                            <p> 🧡 Venue: {event._embedded.venues[0].name}</p>
+
+                            {event.promoter && (
+                                <p style={{fontSize: '15px', color:'gray'}}> 💜 Promoter: {event.promoter.name}</p>
+                            )}
+
+                            {event.images && event.images.length > 0 && (
+                                <div>
+                                    <img 
+                                        src={event.images[0].url} 
+                                        alt={`${event.name} image`} 
+                                        width="300"
+                                        style={{
+                                          marginTop: '20px'
+                                      }}
+                                    />
+                                </div>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            );
+        } else {
+            return <div>No Events Available</div>;
+        }
+    };
+
+    return (
+        <>
+            <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', textAlign:'center' }} className="main">
+                <header>
+                    <h1 style={{ fontSize: '36px', fontWeight: 'bold', color: '#333' }}>Ticketmaster Events 🏟</h1>
+                    <button 
+                      onClick={fetchData}
+                      style={{
+                        padding: '10px 20px',
+                        borderRadius: '5px',
+                        border: '3px solid #fff',
+                        backgroundColor: '#D81E5B',
+                        color: 'white',
+                        cursor: 'pointer',
+                        fontSize: '26px',
+                        margin: '50px'
+                    }}>
+                        Fetch Events 👻
+                    </button>
+                </header>
+
+                {isLoading && <p>Loading events...</p>}
+                {error && <p>{error}</p>}
+
+                <DisplayEvents />
+            </div>
+        </>
+    );
 }
-
